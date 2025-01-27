@@ -37,11 +37,12 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             <Image
-              src="/rocket.svg"
-              alt="Rocket icon"
-              width={20}
-              height={20}
-            />
+  src="/rocket.svg"
+  alt="Rocket icon"
+  width={20}
+  height={20}
+  className="mr-2" // Add right padding
+/>
             Launch to AWS
           </a>
           <a
