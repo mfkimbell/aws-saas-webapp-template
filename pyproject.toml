@@ -5,7 +5,7 @@ description = "Default template for PDM package"
 authors = [
     {name = "Mitchell Kimbell", email = "mfkimbell@gmail.com"},
 ]
-dependencies = []
+dependencies = ["fastapi>=0.115.6", "sqlalchemy>=2.0.37", "pyjwt>=2.10.1", "sqlalchemy-stubs>=0.4", "python-dotenv>=1.0.1", "pytest>=8.3.4", "pytest-asyncio>=0.25.2", "httpx>=0.28.1", "freezegun>=1.5.1", "uvicorn>=0.34.0", "python-multipart>=0.0.20"]
 requires-python = "==3.12.*"
 readme = "README.md"
 license = {text = "MIT"}
