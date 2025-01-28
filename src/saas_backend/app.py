@@ -31,5 +31,5 @@ def health_check():
 @app.get("/secrets")
 def get_secrets():
     # Fetch a variable from the environment
-    secret_value = os.getenv("TEST_SECRET", "Secret not found")
+    secret_value = os.getenv("APP_MODE", "Secret not found")
     return {"secret_value": secret_value}
