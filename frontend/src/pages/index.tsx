@@ -1,4 +1,7 @@
 import Image from "next/image";
+import { Geist, Geist_Mono } from "next/font/google";
+
+
 
 export default function Home() {
   return (
@@ -21,9 +24,9 @@ export default function Home() {
           <li className="mb-2">
             Get started by editing{" "}
             <code className="bg-white/[.1] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
+              src/pages/index.tsx
             </code>
-            .
+            
           </li>
           <li>Customize and deploy your SaaS webapp on AWS.</li>
         </ol>
@@ -37,12 +40,12 @@ export default function Home() {
             rel="noopener noreferrer"
           >
             <Image
-  src="/rocket.svg"
-  alt="Rocket icon"
-  width={20}
-  height={20}
-  className="mr-2" // Add right padding
-/>
+              src="/rocket.svg"
+              alt="Rocket icon"
+              width={20}
+              height={20}
+              className="mr-2" // Add right padding
+            />
             Launch to AWS
           </a>
           <a
