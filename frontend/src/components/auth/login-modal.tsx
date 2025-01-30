@@ -105,7 +105,7 @@ export default function AuthModal({ isOpen, setIsOpen }: AuthModalProps) {
               id="password"
               type="password"
               value={password}
-              onChange={(e: any) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>

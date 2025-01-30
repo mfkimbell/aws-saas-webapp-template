@@ -28,3 +28,6 @@ help:
 	@echo "  make build     - Build the app for production"
 	@echo "  make start     - Start the production server"
 	@echo "  make lint      - Run linting"
+
+# kill port 8000
+# kill -9 $(lsof -t -i:8000)

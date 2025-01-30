@@ -1,4 +1,3 @@
 export const LoggedInUser = () => {
-    return <div>LoggedInUser</div>;
-  };
-  
+  return <div>LoggedInUser</div>;
+};

@@ -10,15 +10,15 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser(state: any, action: any) {
+    setUser(state, action) {
       state.id = action.payload.id;
       state.username = action.payload.username;
       state.creditBalance = action.payload.creditBalance;
     },
-    updateCreditBalance(state: any, action: any) {
+    updateCreditBalance(state, action) {
       state.creditBalance = action.payload;
     },
-    clearUser(state: any) {
+    clearUser(state) {
       state.id = null;
       state.username = '';
       state.creditBalance = 0;
