@@ -18,7 +18,7 @@ lint:
 	cd $(FRONTEND_DIR) && npm run lint
 
 lapi:
-	pdm run python -m uvicorn src.saas_backend.app:app --reload --host 0.0.0.0 --port 8000
+	PYTHONPATH=src pdm run uvicorn src.saas_backend.app:app --reload --host 0.0.0.0 --port 8000
 
 # Help
 help:

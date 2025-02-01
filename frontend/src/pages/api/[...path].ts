@@ -14,8 +14,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log("🔍 Incoming API Request:");
+  console.log("➡️ Path:", req.query.path);
+  console.log("🛠️ Method:", req.method);
+  console.log("📨 Request Headers:", req.headers);
+  console.log("📩 Request Body:", req.body);
   // Get the JWT
   const jwt = await getJwt(req);
+  console.log("🔑 Extracted JWT:", jwt);
 
   // Get needed objects from client-side request
   const { path } = req.query;
@@ -44,6 +50,9 @@ export default async function handler(
 
     if (jwt?.access_token) {
       headers.set("Authorization", `Bearer ${jwt.access_token}`);
+      console.log("🔐 Authorization Header Set:", headers.get("Authorization"));
+    } else {
+      console.warn("⚠️ No access token found in JWT.");
     }
 
     let response;

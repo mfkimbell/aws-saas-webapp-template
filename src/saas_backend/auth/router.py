@@ -36,6 +36,8 @@ async def login(
         },
         expires_delta=access_token_expires,
     )
+    print(f"✅ User Authenticated: {user.username}")
+    print(f"🔑 Generated Access Token: {access_token}")
 
     response = JSONResponse(content={"message": "User logged in successfully"})
     response.set_cookie(
@@ -44,29 +46,41 @@ async def login(
         httponly=True,
     )
 
+    print(f"🍪 Set-Cookie Header Sent: {response.headers.get('set-cookie')}")
+
     return response
 
 
 @router.post("/logout")
 async def logout_user(token: str = Header(..., alias="Authorization")):
+    LOG.info(f"🔍 Logout Requested. Received Token: {token[:20]}...")
+
     try:
+        user = None  # Initialize user variable
+
         try:
             user = UserManager.get_user_from_access_token(token)
+            LOG.info(f"✅ Found User: {user.username if user else 'None'}")
 
-        except HTTPException:
-            JwtHandler.remove_token(token)  # already expired
+        except HTTPException as e:
+            LOG.warning(f"⚠️ Token Validation Failed: {e.detail}")
+            JwtHandler.remove_token(token)  # Remove if already expired
             return {"message": "User logged out successfully"}
 
-        if user is None:
+        if not user:
+            LOG.error("❌ No user found for this token.")
             raise HTTPException(status_code=401, detail="Invalid token")
 
+        # Expire the token
+        JwtHandler.expire_token(token)
+        LOG.info(f"🗑️ Token Expired Successfully.")
+
+        return {"message": "User logged out successfully"}
+
     except jwt.PyJWTError as e:
-        print(f"Error: {e}")
+        LOG.error(f"🚨 JWT Error: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    JwtHandler.expire_token(token)
-
-    return {"message": "User logged out successfully"}
 
 
 @router.post("/register")
