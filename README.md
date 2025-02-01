@@ -1,5 +1,20 @@
 # aws-saas-webapp-template
 
+How to run:
+root .env
+```
+JWT_SECRET=<MATCHING PASSWORD>
+APP_MODE=dev
+DATABASE_URL=
+```
+frontend .env
+```
+API_URL=http://localhost:8000
+JWT_SECRET=<MATCHING PASSWORD>
+NEXTAUTH_SECRET=<MATCHING PASSWORD>
+
+```
+
 ## Authentication
 <img width="1109" alt="auth" src="https://github.com/user-attachments/assets/5e5b7260-b203-411d-b7ad-95196e88d9df" />
 
