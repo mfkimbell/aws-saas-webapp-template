@@ -6,6 +6,8 @@ import { CSSProperties } from "react";
 export const CreditBalance = () => {
   const { user } = useUser();
   const { data: session } = useSession();
+  console.log("user credit", user?.creditBalance);
+  console.log("user ? ", user);
 
   if (!session) {
     return null;

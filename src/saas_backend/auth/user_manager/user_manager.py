@@ -15,9 +15,19 @@ class UserManager:
         api_key: str | None = Header(None, alias="X-API-Key"),
     ) -> User:
         if not token and not api_key:
+            print("🚨 No token or API key provided!")
             raise HTTPException(status_code=401, detail="Missing token or API key")
 
-        return UserManager.get_user(token, api_key)
+        print(f"🔍 Incoming Auth Request - Token: {token} ... API Key: {api_key}")
+        
+        user = UserManager.get_user(token, api_key)
+        
+        if user:
+            print(f"✅ User found in DB: {user.username} (ID: {user.id})")
+        else:
+            print("❌ No user found!")
+
+        return user
 
     @staticmethod
     def get_user(access_token: str | None, api_key: str | None) -> User:

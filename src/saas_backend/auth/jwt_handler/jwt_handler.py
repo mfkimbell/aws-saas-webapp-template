@@ -1,13 +1,13 @@
 from datetime import timedelta
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timezone
 import jwt
-
 from saas_backend.auth.constants import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, get_secret
 from saas_backend.auth.database import get_db
 from saas_backend.auth.models import Blacklist
 from fastapi import HTTPException
 from saas_backend.logger import LOG
+import uuid
 
 
 class JwtHandler:
@@ -37,19 +37,20 @@ class JwtHandler:
 
 
     @staticmethod
-    def create_access_token(
-        data: dict[str, Any], expires_delta: timedelta | None = None
-    ) -> str:
-        to_encode = data.copy()
-        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
+        now = datetime.now(timezone.utc)  # Ensure UTC consistency
+        expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
 
-        if expires_delta:
-            expire = datetime.now() + expires_delta
+        LOG.info(f"🔑 Creating token for user: {data.get('username')}")
+        LOG.info(f"🕒 Expiration: {expire} (UTC), Expires in: {expire - now} seconds")
 
-        to_encode.update({"exp": expire})
+        jti = str(uuid.uuid4())  # Generate a unique token ID
+        to_encode = {**data, "exp": expire, "jti": jti}
+
         encoded_jwt = jwt.encode(to_encode, get_secret(), algorithm=ALGORITHM)
 
-        JwtHandler.blacklist_token(encoded_jwt, expires_at=expire)
+        LOG.info(f"✅ Token successfully created for User ID {data.get('id')}")
+        LOG.info(f"🆔 JWT ID (jti): {jti}, Expiration time: {expire} (Epoch: {expire.timestamp()})")
 
         return encoded_jwt
 
