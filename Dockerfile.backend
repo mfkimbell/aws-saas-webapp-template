@@ -1,0 +1,31 @@
+FROM python:3.12-slim
+
+# Install uv 
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install Python virtual environment tools
+RUN apt-get update && apt-get install -y python3-venv
+
+# Create and activate a virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install pdm within the virtual environment
+RUN pip install pdm
+
+WORKDIR /app
+
+# Install dependencies
+COPY pyproject.toml pdm.lock ./
+RUN pdm install
+
+# Copy the rest of the code
+COPY src ./src
+
+RUN pdm install
+
+# Copy start.sh and set permissions
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh  # ✅ Fix: Make it executable
+
+CMD ["./start.sh"]
