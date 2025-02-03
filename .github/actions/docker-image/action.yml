@@ -31,6 +31,9 @@ runs:
     with:
       username: ${{ inputs.dockerhub_username }}
       password: ${{ inputs.dockerhub_token }}
+  - name: Verify Docker Hub Login
+    run: docker info
+    shell: bash
 
   - name: Debug Docker Tagging
     run: |
