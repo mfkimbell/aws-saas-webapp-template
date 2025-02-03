@@ -12,6 +12,14 @@ jobs:
       version: ${{ steps.set_version.outputs.version }}
 
     steps:
+      - name: Debug Inputs
+        run: |
+          echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}"
+          echo "DOCKERHUB_REPO=${{ secrets.DOCKERHUB_REPO }}"
+          echo "DOCKERHUB_TOKEN Length=${#secrets.DOCKERHUB_TOKEN}"
+          echo "Generated VERSION=${{ env.VERSION }}"
+          echo "Dockerfile Path=${{ inputs.dockerfile }}"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
