@@ -145,3 +145,22 @@ async def delete_api_key(
     except Exception as e:
         LOG.error(f"Error deleting API key: {e}")
         raise HTTPException(status_code=500, detail="Error deleting API key")
+    
+@router.get("/user/refresh-session")
+async def refresh_session(
+    user: User = Depends(UserManager.get_user_from_header),
+    db: Session = Depends(get_db),
+):
+    """
+    Fetches the latest user data from the database and returns it.
+    """
+    fresh_user = db.query(User).filter(User.id == user.id).first()
+
+    if not fresh_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "id": fresh_user.id,
+        "username": fresh_user.username,
+        "credits": fresh_user.credits,
+    }

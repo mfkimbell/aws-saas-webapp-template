@@ -5,3 +5,5 @@ if [ "$APP_MODE" = "dev" ]; then
 else
     pdm run python -m uvicorn src.saas_backend.app:app --host 0.0.0.0 --port 8000
 fi
+
+# we are running in hot reload mode if it's dev
