@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   images: {
-    domains: ["storage.googleapis.com", "AWS STORAGE BUCKET HERE"],
+    domains: ["storage.googleapis.com"],
   },
 };
 
