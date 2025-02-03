@@ -4,21 +4,21 @@ description: Build and push a Docker image to Docker Hub
 
 inputs:
   dockerhub_username:
-    description: The path to the Dockerfile
+    description: "Docker Hub username"
     required: true
-    default: Dockerfile
+
   dockerhub_repo:
-    description: The path to the Dockerfile
+    description: "Docker Hub repository name"
     required: true
-    default: Dockerfile
+
   dockerhub_token:
-    description: The path to the Dockerfile
+    description: "Docker Hub access token for authentication"
     required: true
-    default: Dockerfile
+
   dockerfile:
-    description: The path to the Dockerfile
+    description: "Path to the Dockerfile"
     required: true
-    default: Dockerfile
+    default: "Dockerfile"
 
 runs:
   using: composite
