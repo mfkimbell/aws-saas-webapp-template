@@ -12,23 +12,6 @@ jobs:
       version: ${{ steps.set_version.outputs.version }}
 
     steps:
-      - name: Debug Inputs (Bypass Masking)
-        run: |
-          echo "DOCKERHUB_USERNAME (Base64 Encoded):"
-          echo -n "${{ secrets.DOCKERHUB_USERNAME }}" | base64
-
-          echo "DOCKERHUB_REPO (Base64 Encoded):"
-          echo -n "${{ secrets.DOCKERHUB_REPO }}" | base64
-
-          echo "DOCKERHUB_TOKEN (Base64 Encoded - First 10 Characters Only):"
-          echo -n "${{ secrets.DOCKERHUB_TOKEN }}" | base64 | cut -c1-10
-      - name: Debug Inputs (Reverse Secrets)
-        run: |
-          echo "DOCKERHUB_USERNAME (Reversed): $(echo -n "${{ secrets.DOCKERHUB_USERNAME }}" | rev)"
-          echo "DOCKERHUB_REPO (Reversed): $(echo -n "${{ secrets.DOCKERHUB_REPO }}" | rev)"
-          echo "DOCKERHUB_TOKEN (Reversed - First 10): $(echo -n "${{ secrets.DOCKERHUB_TOKEN }}" | rev | cut -c1-10)"
-
-
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,7 +27,7 @@ jobs:
         uses: ./.github/actions/docker-image
         with:
           dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
-          dockerhub_repo: ${{ secrets.DOCKERHUB_REPO }}
+          dockerhub_repo: aws-saas-template
           dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
           dockerfile: Dockerfile.backend
 
