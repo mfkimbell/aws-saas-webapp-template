@@ -1,7 +1,10 @@
 import { useSession } from "next-auth/react";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/userSlice";
 
 export default function useRefreshSession() {
   const { update } = useSession();
+  const dispatch = useDispatch();
 
   async function refreshSession() {
     const response = await fetch("/api/refresh-user", { method: "POST" });
@@ -11,8 +14,15 @@ export default function useRefreshSession() {
       return;
     }
 
-    await update(); // 🔄 Forces NextAuth to re-run the `session` callback
-    console.log("✅ Session Updated");
+    const updatedUser = await response.json(); // Get new user data
+
+    // 🔄 Update NextAuth session
+    await update(); 
+
+    // 🔄 Update Redux state with latest user info
+    dispatch(setUser(updatedUser.user));
+
+    console.log("✅ Session & Redux Updated:", updatedUser.user);
   }
 
   return refreshSession; // ✅ Return the function for easy use
