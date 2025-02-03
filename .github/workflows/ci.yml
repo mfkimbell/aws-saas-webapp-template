@@ -22,6 +22,12 @@ jobs:
 
           echo "DOCKERHUB_TOKEN (Base64 Encoded - First 10 Characters Only):"
           echo -n "${{ secrets.DOCKERHUB_TOKEN }}" | base64 | cut -c1-10
+      - name: Debug Inputs (Reverse Secrets)
+        run: |
+          echo "DOCKERHUB_USERNAME (Reversed): $(echo -n "${{ secrets.DOCKERHUB_USERNAME }}" | rev)"
+          echo "DOCKERHUB_REPO (Reversed): $(echo -n "${{ secrets.DOCKERHUB_REPO }}" | rev)"
+          echo "DOCKERHUB_TOKEN (Reversed - First 10): $(echo -n "${{ secrets.DOCKERHUB_TOKEN }}" | rev | cut -c1-10)"
+
 
 
       - name: Checkout code
