@@ -97,7 +97,7 @@ def requires_credit(decrement: bool = True) -> Callable[[F], F]:
 ```
 
 ## Request proxying
-There is a custom fetch function in the React Frontend in lib/utils that adds "/api" in front of all calls and then adds the "<API_URL>" in front of that. So "/login" will go to NextJS's api as "/api/login" and then to the backend as "<API_URL>/login". To be clear, this is NOT used in the authentication logic, it is for developers to call their backend in a straightforward manner. 
+There is a custom fetch function in the React Frontend in lib/utils that adds "/api" in front of all calls and then adds the "<API_URL>" in front of that. So "/login" will go to NextJS's api as "/api/login" and then to the backend as "<API_URL>/login". To be clear, this is NOT used in the authentication logic, it is for developers to call their backend without manually calling the frontend api with a token. 
 ```typescript
 export const nextApi = axios.create({
   baseURL: "/api",
