@@ -26,9 +26,8 @@ jobs:
       - name: Set image tags using current UTC date/time
         id: set_tags
         run: |
-          # Format the current UTC time to YYYYMMDDHHMM (e.g., 202502041031)
-          TIMESTAMP=$(date -u +"%Y%m%d%H%M")
-          # Create separate tags for backend and frontend
+          # Format: YYYYMMDD-HHMMAM/PM (e.g., 20250204-0215PM)
+          TIMESTAMP=$(date -u +"%Y%m%d-%I%M%p")
           echo "BACKEND_TAG=backend-${TIMESTAMP}" >> $GITHUB_ENV
           echo "FRONTEND_TAG=frontend-${TIMESTAMP}" >> $GITHUB_ENV
           echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
