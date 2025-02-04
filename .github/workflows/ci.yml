@@ -27,7 +27,7 @@ jobs:
         id: set_tags
         run: |
           export TZ="America/Chicago"
-          TIMESTAMP=$(date +"%Y%m%d-%I%M%p")
+          TIMESTAMP=$(date +"%m%d-%I%M%p")
           echo "BACKEND_TAG=backend-${TIMESTAMP}" >> $GITHUB_ENV
           echo "FRONTEND_TAG=frontend-${TIMESTAMP}" >> $GITHUB_ENV
           echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
