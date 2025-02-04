@@ -12,7 +12,7 @@ This template allows for a user to sign up, sign in, and sign out. It comes with
 
 This template focuses on a credit system where users can purchase credits to use the application, with the ability to make an API key to use the application without the frontend. Though this can be easily modified to use a subscription model, by forcing the `requires_credit` function to not decrement the user's credit balance, to act as a subscription.
 
-## Environment Variables
+## Getting Started
 
 The following environment variables are required:
 
@@ -21,17 +21,6 @@ The following environment variables are required:
 - `DATABASE_URL`: A URL for the database
 
 The `JWT_SECRET` on the frontend and backend must be the same.
-
-## Getting Started
-
-1. Clone the repository
-2. Run `pdm install` to install the backend dependencies
-3. Run `cd frontend` and then `npm install` to install the frontend dependencies
-
-## Running the Application
-
-1. Run `make build up` to build and start the containers
-2. Visit `http://localhost:3000` to view the frontend
 
 #### Example Env for Deveopment
 `./env`
@@ -46,6 +35,22 @@ API_URL=http://localhost:8000
 JWT_SECRET=<MATCHING PASSWORD>
 NEXTAUTH_SECRET=<MATCHING PASSWORD>
 ```
+
+#### Deployment Configuration
+For DockerHub deployment via GitHub Actions, configure the following GitHub Secrets:
+
+`DOCKERHUB_USERNAME` - Your DockerHub username. (e.g., mfkimbell).
+
+`DOCKERHUB_TOKEN` - Your DockerHub access token.
+
+`DOCKERHUB_REPO` - The repository name (e.g., aws-saas-template).
+
+## Running the Application
+
+1. Run `make build up` to build and start the containers
+2. Visit `http://localhost:3000` to view the frontend
+
+
 
 ## Authentication
 <img width="1109" alt="auth" src="https://github.com/user-attachments/assets/5e5b7260-b203-411d-b7ad-95196e88d9df" />
@@ -124,6 +129,9 @@ response = await api.request({
 ```
 
 ## Unit Testing
+
+Unit tests are run automatically during the `test` job in the `Test Python` github action.
+
 This template using `pytest` to validate various backend routes. It uses an override for the "get_db()" function to perform its tests on a test database, while still testing production code. 
 
 FastAPI has a built in "TestClient" is a wrapper around requests that allows sending HTTP requests directly to FastAPI applications in memory, without actually running a server.
