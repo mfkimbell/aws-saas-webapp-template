@@ -1,5 +1,3 @@
-# aws-saas-webapp-template
-
 # SaaS Template with Authentication
 
 This is a template for a SaaS application with authentication.
