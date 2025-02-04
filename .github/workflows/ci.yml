@@ -22,6 +22,19 @@ jobs:
           VERSION=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 8)
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+      
+      - name: Set image tags using current UTC date/time
+        id: set_tags
+        run: |
+          # Format the current UTC time to YYYYMMDDHHMM (e.g., 202502041031)
+          TIMESTAMP=$(date -u +"%Y%m%d%H%M")
+          # Create separate tags for backend and frontend
+          echo "BACKEND_TAG=backend-${TIMESTAMP}" >> $GITHUB_ENV
+          echo "FRONTEND_TAG=frontend-${TIMESTAMP}" >> $GITHUB_ENV
+          echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "frontend_tag=frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "Generated backend tag: backend-${TIMESTAMP}"
+          echo "Generated frontend tag: frontend-${TIMESTAMP}"
 
       - name: Build and push Docker image
         uses: ./.github/actions/docker-image
@@ -40,4 +53,4 @@ jobs:
       - name: Test Python
         uses: ./.github/actions/test-python
         with:
-          docker_image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ needs.build.outputs.version }}
+          docker_image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ needs.build.outputs.backend_tag }}
