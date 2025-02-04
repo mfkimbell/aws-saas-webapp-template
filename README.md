@@ -1,6 +1,7 @@
 # SaaS Template with Authentication
 
-![Uploading logo.png…]()
+![logo](https://github.com/user-attachments/assets/61a2145d-1623-4e11-b0cd-2a1ace6b566f)
+
 
 
 This is a template for a SaaS application with authentication.
