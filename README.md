@@ -1,6 +1,9 @@
 # SaaS Template with Authentication
 
-![logo](https://github.com/user-attachments/assets/61a2145d-1623-4e11-b0cd-2a1ace6b566f)
+
+  <img src="https://github.com/user-attachments/assets/61a2145d-1623-4e11-b0cd-2a1ace6b566f" alt="logo" width="200">
+
+
 
 
 
