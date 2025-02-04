@@ -19,6 +19,10 @@ inputs:
     description: "Path to the Dockerfile"
     required: true
     default: "Dockerfile"
+  
+  image_tag: 
+    description: "Tag for the Docker image"
+    required: true
 
 runs:
   using: composite
@@ -44,4 +48,4 @@ runs:
       context: .
       file: ${{ inputs.dockerfile }}
       push: true
-      tags: ${{ inputs.dockerhub_username }}/${{ inputs.dockerhub_repo }}:${{ env.BACKEND_TAG }}
+      tags: ${{ inputs.dockerhub_username }}/${{ inputs.dockerhub_repo }}:${{ inputs.image_tag }}
