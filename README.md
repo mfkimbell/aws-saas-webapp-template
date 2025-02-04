@@ -1,5 +1,8 @@
 # SaaS Template with Authentication
 
+![Uploading logo.png…]()
+
+
 This is a template for a SaaS application with authentication.
 
 The frontend is built with Next.js and Tailwind CSS.
