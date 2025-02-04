@@ -35,12 +35,6 @@ runs:
     run: docker info
     shell: bash
 
-  - name: Debug Docker Tagging
-    run: |
-      echo "Final Docker Image Tag:"
-      echo "${{ inputs.dockerhub_username }}/${{ inputs.dockerhub_repo }}:${{ env.VERSION }}"
-    shell: bash  # Added shell to avoid missing 'shell' error
-
   - name: Set up Docker Buildx
     uses: docker/setup-buildx-action@v3
 
