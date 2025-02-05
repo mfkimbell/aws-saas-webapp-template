@@ -215,7 +215,7 @@ resource "aws_ecs_task_definition" "backend" {
   container_definitions = jsonencode([
     {
       name         = var.backend_service_name,
-      image        = "mfkimbell/aws-saas-template:backend-0204-0253PM",
+      image        = "mfkimbell/aws-saas-template:backend-0205-1052AM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -243,7 +243,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name         = var.frontend_service_name,
-      image        = "mfkimbell/aws-saas-template:frontend-0204-0253PM",
+      image        = "mfkimbell/aws-saas-template:frontend-0205-1052AM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -259,9 +259,26 @@ resource "aws_ecs_task_definition" "frontend" {
           name  = "API_URL"
           value = "http://${aws_lb.backend_alb.dns_name}"
         }
-      ]
+      ],
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/saas-frontend"
+          awslogs-region        = "us-east-1"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
     }
   ])
+}
+
+#############################
+# Log group for saas-frontend
+#############################
+
+resource "aws_cloudwatch_log_group" "saas_frontend" {
+  name              = "/ecs/saas-frontend"
+  retention_in_days = 7  # Adjust the retention period as needed
 }
 
 #############################
@@ -289,7 +306,59 @@ resource "aws_ecs_service" "backend" {
   }
 }
 
-# Frontend Service (unchanged; still accessed via its public IP)
+#############################
+# ALB Resources for Frontend
+#############################
+
+resource "aws_lb" "frontend_alb" {
+  name               = "frontend-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs.id]
+  subnets            = [aws_subnet.this_1.id, aws_subnet.this_2.id]
+
+  tags = {
+    Name = "frontend-alb"
+  }
+}
+
+resource "aws_lb_target_group" "frontend_tg" {
+  name        = "frontend-tg"
+  port        = var.frontend_port  # 3000
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.this.id
+  target_type = "ip"  # Required for awsvpc mode
+
+  health_check {
+    path                = "/"       # Adjust if you have a custom health endpoint
+    protocol            = "HTTP"
+    matcher             = "200-399"
+    interval            = 30        # Keeping the same as the backend target group
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "frontend-tg"
+  }
+}
+
+resource "aws_lb_listener" "frontend_listener" {
+  load_balancer_arn = aws_lb.frontend_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_tg.arn
+  }
+}
+
+#############################
+# Updated ECS Service for Frontend
+#############################
+
 resource "aws_ecs_service" "frontend" {
   name            = var.frontend_service_name
   cluster         = aws_ecs_cluster.this.id
@@ -300,6 +369,14 @@ resource "aws_ecs_service" "frontend" {
   network_configuration {
     subnets         = [aws_subnet.this_1.id, aws_subnet.this_2.id]
     security_groups = [aws_security_group.ecs.id]
-    assign_public_ip = true
+    assign_public_ip = true   # You can leave this true for now.
+  }
+
+  # Register the frontend container with its own ALB target group.
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend_tg.arn
+    container_name   = var.frontend_service_name
+    container_port   = var.frontend_port
   }
 }
+

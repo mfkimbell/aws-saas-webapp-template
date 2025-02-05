@@ -6,6 +6,8 @@ const api = axios.create({
   baseURL: process.env.API_URL,
 });
 
+console.log("API_URL", process.env.API_URL);
+
 const getJwt = async (req: NextApiRequest) => {
   return await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 };
