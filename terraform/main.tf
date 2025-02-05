@@ -25,11 +25,13 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecsTaskExecutionRole"
   assume_role_policy = jsonencode({
     Version   = "2012-10-17",
-    Statement = [{
-      Effect    = "Allow",
-      Principal = { Service = "ecs-tasks.amazonaws.com" },
-      Action    = "sts:AssumeRole"
-    }]
+    Statement = [
+      {
+        Effect    = "Allow",
+        Principal = { Service = "ecs-tasks.amazonaws.com" },
+        Action    = "sts:AssumeRole"
+      }
+    ]
   })
 }
 
@@ -38,15 +40,44 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Inline Policy to allow secretsmanager:GetSecretValue and DescribeSecret
+data "aws_iam_policy_document" "ecs_task_execution_inline_policy" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ecs_task_execution_inline_policy" {
+  name        = "ecsTaskExecutionInlinePolicy"
+  description = "Allow ECS tasks to retrieve secrets from Secrets Manager"
+  policy      = data.aws_iam_policy_document.ecs_task_execution_inline_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_inline_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.ecs_task_execution_inline_policy.arn
+}
+
 resource "aws_iam_role" "ecs_task_role" {
   name = "ecsTaskRole"
   assume_role_policy = jsonencode({
     Version   = "2012-10-17",
-    Statement = [{
-      Effect    = "Allow",
-      Principal = { Service = "ecs-tasks.amazonaws.com" },
-      Action    = "sts:AssumeRole"
-    }]
+    Statement = [
+      {
+        Effect    = "Allow",
+        Principal = { Service = "ecs-tasks.amazonaws.com" },
+        Action    = "sts:AssumeRole"
+      }
+    ]
   })
 }
 
@@ -215,7 +246,7 @@ resource "aws_ecs_task_definition" "backend" {
   container_definitions = jsonencode([
     {
       name         = var.backend_service_name,
-      image        = "mfkimbell/aws-saas-template:backend-0205-0414PM",
+      image        = "mfkimbell/aws-saas-template:backend-0205-0430PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -243,12 +274,19 @@ resource "aws_ecs_task_definition" "backend" {
           awslogs-group         = aws_cloudwatch_log_group.ecs_backend.name,
           awslogs-stream-prefix = "backend"
         }
+      },
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 15
       }
     }
   ])
 }
 
-# Frontend Task Definition with Secrets from Secrets Manager
+# Frontend Task Definition with Secrets from Secrets Manager and Health Check
 resource "aws_ecs_task_definition" "frontend" {
   family                   = var.frontend_task_family
   network_mode             = "awsvpc"
@@ -261,7 +299,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name         = var.frontend_service_name,
-      image        = "mfkimbell/aws-saas-template:frontend-0205-0414PM",
+      image        = "mfkimbell/aws-saas-template:frontend-0205-0430PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
