@@ -1,3 +1,18 @@
+# Ignore Terraform local files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# Ignore Terraform crash logs
+crash.log
+
+# Ignore provider binaries (to avoid GitHub's large file limit)
+terraform/.terraform/providers/
+
+# Ignore generated plan files
+*.tfplan
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
