@@ -1,6 +1,15 @@
 import Image from "next/image";
 
+console.log("API_URL", process.env.API_URL);
+console.log("JWT_SECRET", process.env.JWT_SECRET);
+console.log("NEXTAUTH_SECRET", process.env.NEXTAUTH_SECRET);
+
 export default function LandingPage() {
+  // For thorough troubleshooting, you might also want to log inside the component:
+  console.log("[LandingPage Component] API_URL:", process.env.API_URL);
+  console.log("[LandingPage Component] JWT_SECRET:", process.env.JWT_SECRET);
+  console.log("[LandingPage Component] NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-950 text-white p-8 sm:p-16">
       {/* Logo & Title */}
@@ -42,20 +51,19 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="mt-12 text-gray-500 text-sm text-center">
-  <p>
-    Released under the{" "}
-    <a
-      href="https://opensource.org/licenses/MIT"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-orange-400 hover:underline"
-    >
-      MIT License
-    </a>.  
-  </p>
-  <p>Open-source and community-driven. Contributions welcome!</p>
-</footer>
-
+        <p>
+          Released under the{" "}
+          <a
+            href="https://opensource.org/licenses/MIT"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-orange-400 hover:underline"
+          >
+            MIT License
+          </a>.
+        </p>
+        <p>Open-source and community-driven. Contributions welcome!</p>
+      </footer>
     </div>
   );
 }

@@ -90,16 +90,17 @@ variable "frontend_task_family" {
   default     = "frontend-task"
 }
 
+# ECS Task Resources (adjust CPU/memory as needed)
 variable "cpu" {
   description = "CPU units for ECS tasks"
   type        = number
-  default     = 256
+  default     = 512
 }
 
 variable "memory" {
   description = "Memory for ECS tasks"
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "backend_port" {

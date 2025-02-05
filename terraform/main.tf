@@ -1,3 +1,6 @@
+##############################################
+# Terraform and Provider Config
+##############################################
 terraform {
   required_version = ">= 1.5.0"
   required_providers {
@@ -12,10 +15,12 @@ provider "aws" {
   region = var.aws_region
 }
 
-#############################
-# IAM Roles for ECS Tasks
-#############################
+# Retrieve the AWS Account ID (used to build secret ARNs)
+data "aws_caller_identity" "current" {}
 
+##############################################
+# IAM Roles for ECS Tasks
+##############################################
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecsTaskExecutionRole"
   assume_role_policy = jsonencode({
@@ -45,51 +50,41 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 }
 
-#############################
+##############################################
 # Networking Resources
-#############################
-
-# Create a VPC
+##############################################
 resource "aws_vpc" "this" {
   cidr_block = var.vpc_cidr
-
   tags = {
     Name = var.vpc_name
   }
 }
 
-# Create an Internet Gateway and attach it to the VPC
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.this.id
-
   tags = {
     Name = "${var.vpc_name}-igw"
   }
 }
 
-# Create Subnet 1 within the VPC (in AZ1)
 resource "aws_subnet" "this_1" {
   vpc_id            = aws_vpc.this.id
   cidr_block        = var.subnet_cidr_1
   availability_zone = var.availability_zone_1
-
   tags = {
     Name = var.subnet_name_1
   }
 }
 
-# Create Subnet 2 within the VPC (in AZ2)
 resource "aws_subnet" "this_2" {
   vpc_id            = aws_vpc.this.id
   cidr_block        = var.subnet_cidr_2
   availability_zone = var.availability_zone_2
-
   tags = {
     Name = var.subnet_name_2
   }
 }
 
-# Create a Public Route Table with a default route to the Internet Gateway
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
 
@@ -103,20 +98,18 @@ resource "aws_route_table" "public" {
   }
 }
 
-# Associate the Route Table with Subnet 1
 resource "aws_route_table_association" "public_association_1" {
   subnet_id      = aws_subnet.this_1.id
   route_table_id = aws_route_table.public.id
 }
 
-# Associate the Route Table with Subnet 2
 resource "aws_route_table_association" "public_association_2" {
   subnet_id      = aws_subnet.this_2.id
   route_table_id = aws_route_table.public.id
 }
 
-# Create a Security Group that allows all inbound and outbound traffic (for troubleshooting)
 resource "aws_security_group" "ecs" {
+  name   = var.sg_name
   vpc_id = aws_vpc.this.id
 
   ingress {
@@ -138,41 +131,36 @@ resource "aws_security_group" "ecs" {
   }
 }
 
-#############################
+##############################################
 # ECS Cluster
-#############################
-
+##############################################
 resource "aws_ecs_cluster" "this" {
   name = var.cluster_name
 }
 
-#############################
-# ALB Resources for Backend
-#############################
-
-# Create an Application Load Balancer in our public subnets
+##############################################
+# ALB Resources for Backend (unchanged)
+##############################################
 resource "aws_lb" "backend_alb" {
   name               = "backend-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.ecs.id]
   subnets            = [aws_subnet.this_1.id, aws_subnet.this_2.id]
-
   tags = {
     Name = "backend-alb"
   }
 }
 
-# Create a Target Group for the backend service (using target_type = "ip")
 resource "aws_lb_target_group" "backend_tg" {
   name        = "backend-tg"
   port        = var.backend_port  # 8000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.this.id
-  target_type = "ip"   # Important for awsvpc mode
+  target_type = "ip"
 
   health_check {
-    path                = "/"  # Adjust if your backend has a specific health endpoint
+    path                = "/"  
     protocol            = "HTTP"
     matcher             = "200-399"
     interval            = 30
@@ -186,7 +174,6 @@ resource "aws_lb_target_group" "backend_tg" {
   }
 }
 
-# Create a Listener on the ALB on port 80 that forwards to the target group
 resource "aws_lb_listener" "backend_listener" {
   load_balancer_arn = aws_lb.backend_alb.arn
   port              = "80"
@@ -198,11 +185,24 @@ resource "aws_lb_listener" "backend_listener" {
   }
 }
 
-#############################
-# ECS Task Definitions
-#############################
+##############################################
+# CloudWatch Log Groups for ECS
+##############################################
+resource "aws_cloudwatch_log_group" "ecs_backend" {
+  name              = "/ecs/${var.backend_service_name}"
+  retention_in_days = 7
+}
 
-# Backend Task Definition
+resource "aws_cloudwatch_log_group" "ecs_frontend" {
+  name              = "/ecs/${var.frontend_service_name}"
+  retention_in_days = 7
+}
+
+##############################################
+# ECS Task Definitions
+##############################################
+
+# Backend Task Definition with Secrets from Secrets Manager
 resource "aws_ecs_task_definition" "backend" {
   family                   = var.backend_task_family
   network_mode             = "awsvpc"
@@ -215,7 +215,7 @@ resource "aws_ecs_task_definition" "backend" {
   container_definitions = jsonencode([
     {
       name         = var.backend_service_name,
-      image        = "mfkimbell/aws-saas-template:backend-0205-1052AM",
+      image        = "mfkimbell/aws-saas-template:backend-0204-0253PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -225,12 +225,30 @@ resource "aws_ecs_task_definition" "backend" {
           hostPort      = var.backend_port,
           protocol      = "tcp"
         }
-      ]
+      ],
+      secrets = [
+        {
+          name      = "JWT_SECRET",
+          valueFrom = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:backend/JWT_SECRET"
+        },
+        {
+          name      = "APP_MODE",
+          valueFrom = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:backend/APP_MODE"
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-region        = var.aws_region,
+          awslogs-group         = aws_cloudwatch_log_group.ecs_backend.name,
+          awslogs-stream-prefix = "backend"
+        }
+      }
     }
   ])
 }
 
-# Frontend Task Definition
+# Frontend Task Definition with Secrets from Secrets Manager
 resource "aws_ecs_task_definition" "frontend" {
   family                   = var.frontend_task_family
   network_mode             = "awsvpc"
@@ -243,7 +261,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name         = var.frontend_service_name,
-      image        = "mfkimbell/aws-saas-template:frontend-0205-1052AM",
+      image        = "mfkimbell/aws-saas-template:frontend-0204-0253PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -256,36 +274,44 @@ resource "aws_ecs_task_definition" "frontend" {
       ],
       environment = [
         {
-          name  = "API_URL"
+          name  = "API_URL",
           value = "http://${aws_lb.backend_alb.dns_name}"
         }
       ],
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/saas-frontend"
-          awslogs-region        = "us-east-1"
-          awslogs-stream-prefix = "ecs"
+      secrets = [
+        {
+          name      = "JWT_SECRET",
+          valueFrom = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:frontend/JWT_SECRET"
+        },
+        {
+          name      = "NEXTAUTH_SECRET",
+          valueFrom = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:frontend/NEXTAUTH_SECRET"
         }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-region        = var.aws_region,
+          awslogs-group         = aws_cloudwatch_log_group.ecs_frontend.name,
+          awslogs-stream-prefix = "frontend"
+        }
+      },
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 15
       }
     }
   ])
 }
 
-#############################
-# Log group for saas-frontend
-#############################
-
-resource "aws_cloudwatch_log_group" "saas_frontend" {
-  name              = "/ecs/saas-frontend"
-  retention_in_days = 7  # Adjust the retention period as needed
-}
-
-#############################
+##############################################
 # ECS Services
-#############################
+##############################################
 
-# Backend Service (registered with the ALB target group)
+# Backend Service (with ALB)
 resource "aws_ecs_service" "backend" {
   name            = var.backend_service_name
   cluster         = aws_ecs_cluster.this.id
@@ -306,59 +332,7 @@ resource "aws_ecs_service" "backend" {
   }
 }
 
-#############################
-# ALB Resources for Frontend
-#############################
-
-resource "aws_lb" "frontend_alb" {
-  name               = "frontend-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.ecs.id]
-  subnets            = [aws_subnet.this_1.id, aws_subnet.this_2.id]
-
-  tags = {
-    Name = "frontend-alb"
-  }
-}
-
-resource "aws_lb_target_group" "frontend_tg" {
-  name        = "frontend-tg"
-  port        = var.frontend_port  # 3000
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.this.id
-  target_type = "ip"  # Required for awsvpc mode
-
-  health_check {
-    path                = "/"       # Adjust if you have a custom health endpoint
-    protocol            = "HTTP"
-    matcher             = "200-399"
-    interval            = 30        # Keeping the same as the backend target group
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "frontend-tg"
-  }
-}
-
-resource "aws_lb_listener" "frontend_listener" {
-  load_balancer_arn = aws_lb.frontend_alb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend_tg.arn
-  }
-}
-
-#############################
-# Updated ECS Service for Frontend
-#############################
-
+# Frontend Service (accessed via Public IP)
 resource "aws_ecs_service" "frontend" {
   name            = var.frontend_service_name
   cluster         = aws_ecs_cluster.this.id
@@ -369,14 +343,6 @@ resource "aws_ecs_service" "frontend" {
   network_configuration {
     subnets         = [aws_subnet.this_1.id, aws_subnet.this_2.id]
     security_groups = [aws_security_group.ecs.id]
-    assign_public_ip = true   # You can leave this true for now.
-  }
-
-  # Register the frontend container with its own ALB target group.
-  load_balancer {
-    target_group_arn = aws_lb_target_group.frontend_tg.arn
-    container_name   = var.frontend_service_name
-    container_port   = var.frontend_port
+    assign_public_ip = true
   }
 }
-
