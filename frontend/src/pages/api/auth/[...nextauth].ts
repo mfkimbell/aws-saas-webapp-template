@@ -7,6 +7,10 @@ interface ExtendedUser extends NextAuthUser {
   username: string;
 }
 
+console.log("[LandingPage Component] API_URL:", process.env.API_URL);
+console.log("[LandingPage Component] JWT_SECRET:", process.env.JWT_SECRET);
+console.log("[LandingPage Component] NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET);
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || "",
   session: {

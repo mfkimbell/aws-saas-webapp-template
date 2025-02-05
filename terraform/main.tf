@@ -215,7 +215,7 @@ resource "aws_ecs_task_definition" "backend" {
   container_definitions = jsonencode([
     {
       name         = var.backend_service_name,
-      image        = "mfkimbell/aws-saas-template:backend-0204-0253PM",
+      image        = "mfkimbell/aws-saas-template:backend-0205-0414PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -261,7 +261,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name         = var.frontend_service_name,
-      image        = "mfkimbell/aws-saas-template:frontend-0204-0253PM",
+      image        = "mfkimbell/aws-saas-template:frontend-0205-0414PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,

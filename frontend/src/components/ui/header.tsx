@@ -7,6 +7,10 @@ import { useSession } from "next-auth/react";
 import { CreditBalance } from "./credit-balance";
 import Image from "next/image";
 
+console.log("[LandingPage Component] API_URL:", process.env.API_URL);
+console.log("[LandingPage Component] JWT_SECRET:", process.env.JWT_SECRET);
+console.log("[LandingPage Component] NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET);
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
