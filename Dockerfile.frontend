@@ -1,5 +1,8 @@
 FROM node:22-alpine
 
+RUN apk update && apk add curl
+
+
 WORKDIR /app
 
 COPY frontend/package.json frontend/package-lock.json ./
@@ -15,4 +18,5 @@ COPY frontend/next.config.ts ./next.config.ts
 COPY frontend/eslint.config.mjs ./eslint.config.mjs
 COPY frontend/components.json ./components.json
 
-CMD ["npm", "run", "dev"]
+RUN npm run build
+CMD ["npm", "run", "start"]
