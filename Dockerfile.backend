@@ -1,5 +1,8 @@
 FROM python:3.12-slim
 
+# Install curl and uv
+RUN apt-get update && apt-get install -y curl
+
 # Install uv 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
