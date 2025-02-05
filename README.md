@@ -27,7 +27,7 @@ The following environment variables are required:
 
 The `JWT_SECRET` on the frontend and backend must be the same.
 
-#### Example Env for Deveopment
+#### Example Env for local Deveopment
 `./env`
 ```
 JWT_SECRET=<MATCHING PASSWORD>
@@ -40,6 +40,17 @@ API_URL=http://localhost:8000
 JWT_SECRET=<MATCHING PASSWORD>
 NEXTAUTH_SECRET=<MATCHING PASSWORD>
 ```
+
+## Production Deployment steps
+
+Run the following in the aws cli and replace "password" with a secure password
+```
+aws secretsmanager create-secret --name frontend/JWT_SECRET --secret-string “password”
+aws secretsmanager create-secret --name frontend/NEXTAUTH_SECRET --secret-string “password”
+aws secretsmanager create-secret --name backend/JWT_SECRET --secret-string “password”
+aws secretsmanager create-secret --name backend/APP_MODE --secret-string "prod"
+```
+
 
 #### Deployment Configuration
 For DockerHub deployment via GitHub Actions, configure the following GitHub Secrets:
