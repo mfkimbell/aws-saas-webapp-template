@@ -133,3 +133,13 @@ variable "db_name" {
   type        = string
   default     = "mydbname"
 }
+
+variable "backend_image" {
+  description = "Full Docker image URI for the backend (registry/repo:tag)"
+  type        = string
+}
+
+variable "frontend_image" {
+  description = "Full Docker image URI for the frontend (registry/repo:tag)"
+  type        = string
+}

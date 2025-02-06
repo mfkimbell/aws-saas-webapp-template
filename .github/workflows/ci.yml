@@ -10,6 +10,8 @@ jobs:
 
     outputs:
       version: ${{ steps.set_version.outputs.version }}
+      backend_image: ${{ steps.set_tags.outputs.backend_image }}
+      frontend_image: ${{ steps.set_tags.outputs.frontend_image }}
 
     steps:
 
@@ -28,12 +30,23 @@ jobs:
         run: |
           export TZ="America/Chicago"
           TIMESTAMP=$(date +"%m%d-%I%M%p")
+
+          
+
           echo "BACKEND_TAG=backend-${TIMESTAMP}" >> $GITHUB_ENV
-          echo "FRONTEND_TAG=frontend-${TIMESTAMP}" >> $GITHUB_ENV
+          echo "FRONTEND_TAG=frontend-${TIMESTAMP}" >> $GITHUB_ENV 
           echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
           echo "frontend_tag=frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          
           echo "Generated backend tag: backend-${TIMESTAMP}"
           echo "Generated frontend tag: frontend-${TIMESTAMP}"
+
+
+
+          echo backend_image="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo frontend_image="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+
+          
 
       - name: Build and push Backend Docker image
         uses: ./.github/actions/docker-image
@@ -62,4 +75,47 @@ jobs:
   #     - name: Test Python
   #       uses: ./.github/actions/test-python
   #       with:
-  #         docker_image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ needs.build.outputs.backend_tag }}
+  #         docker_image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ needs.build.outputs.backend_tag }} 
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Print the image references
+        working-directory: ./terraform
+        run: |
+          echo "BACKEND_IMAGE from build job: ${{ needs.build.outputs.backend_image }}"
+          echo "FRONTEND_IMAGE from build job: ${{ needs.build.outputs.frontend_image }}"
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: |
+          echo "==== Terraform Plan with dynamic images ===="
+          terraform plan \
+            -var "backend_image=${{ needs.build.outputs.backend_image }}" \
+            -var "frontend_image=${{ needs.build.outputs.frontend_image }}"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: |
+          echo "==== Terraform Apply with dynamic images ===="
+          terraform apply -auto-approve \
+            -var "backend_image=${{ needs.build.outputs.backend_image }}" \
+            -var "frontend_image=${{ needs.build.outputs.frontend_image }}"
