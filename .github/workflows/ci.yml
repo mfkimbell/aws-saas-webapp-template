@@ -10,6 +10,8 @@ jobs:
 
     outputs:
       version: ${{ steps.set_version.outputs.version }}
+      backend_image: ${{ steps.set_tags.outputs.backend_image }}
+      frontend_image: ${{ steps.set_tags.outputs.frontend_image }}
 
     steps:
 
@@ -97,9 +99,12 @@ jobs:
 
         - name: Terraform Plan
           working-directory: ./terraform
-          run: terraform plan \
-            -var="backend_image=${{ needs.build.outputs.backend_image }}" \
-            -var="frontend_image=${{ needs.build.outputs.frontend_image }}"
+          run: |
+            echo "Running Terraform plan with backend_image=${{ needs.build.outputs.backend_image }} and frontend_image=${{ needs.build.outputs.frontend_image }}"
+            terraform plan \
+              -var "backend_image=${{ needs.build.outputs.backend_image }}" \
+              -var "frontend_image=${{ needs.build.outputs.frontend_image }}"
+        
 
         - name: Terraform Apply
           working-directory: ./terraform
