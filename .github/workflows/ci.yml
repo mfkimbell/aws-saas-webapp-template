@@ -93,6 +93,9 @@ jobs:
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
+        
+      - name: Set Terraform Cloud API Token
+        run: echo "TF_TOKEN_app_terraform_io=${{ secrets.TF_API_TOKEN }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         working-directory: ./terraform
