@@ -12,7 +12,6 @@ jobs:
       version: ${{ steps.set_version.outputs.version }}
       backend_image: ${{ steps.set_tags.outputs.backend_image }}
       frontend_image: ${{ steps.set_tags.outputs.frontend_image }}
-
     steps:
 
       - name: Checkout code
@@ -31,17 +30,17 @@ jobs:
           export TZ="America/Chicago"
           TIMESTAMP=$(date +"%m%d-%I%M%p")
 
-          # Construct the full Docker image references
-          BACKEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:backend-${TIMESTAMP}"
-          FRONTEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:frontend-${TIMESTAMP}"
+          BACKEND_TAG="backend-${TIMESTAMP}"
+          FRONTEND_TAG="frontend-${TIMESTAMP}"
+
+          BACKEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${BACKEND_TAG}"
+          FRONTEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${FRONTEND_TAG}"
 
           echo "backend_image=${BACKEND_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "frontend_image=${FRONTEND_IMAGE}" >> "$GITHUB_OUTPUT"
 
-          echo "Generated backend image: ${BACKEND_IMAGE}"
-          echo "Generated frontend image: ${FRONTEND_IMAGE}"
 
-          echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT" 
           echo "frontend_tag=frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
           
           echo "Generated backend tag: backend-${TIMESTAMP}"
