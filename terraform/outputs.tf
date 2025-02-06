@@ -77,3 +77,8 @@ output "backend_alb_dns" {
   description = "The DNS name of the backend ALB"
   value       = aws_lb.backend_alb.dns_name
 }
+
+output "frontend_alb_dns" {
+  description = "The DNS name of the frontend ALB"
+  value       = aws_lb.frontend_alb.dns_name
+}

@@ -217,6 +217,53 @@ resource "aws_lb_listener" "backend_listener" {
 }
 
 ##############################################
+# ALB Resources for Frontend
+##############################################
+resource "aws_lb" "frontend_alb" {
+  name               = "frontend-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs.id]
+  subnets            = [aws_subnet.this_1.id, aws_subnet.this_2.id]
+  tags = {
+    Name = "frontend-alb"
+  }
+}
+
+resource "aws_lb_target_group" "frontend_tg" {
+  name        = "frontend-tg"
+  port        = var.frontend_port  # 3000
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.this.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/"  
+    protocol            = "HTTP"
+    matcher             = "200-399"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "frontend-tg"
+  }
+}
+
+resource "aws_lb_listener" "frontend_listener" {
+  load_balancer_arn = aws_lb.frontend_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend_tg.arn
+  }
+}
+
+##############################################
 # CloudWatch Log Groups for ECS
 ##############################################
 resource "aws_cloudwatch_log_group" "ecs_backend" {
@@ -370,7 +417,7 @@ resource "aws_ecs_service" "backend" {
   }
 }
 
-# Frontend Service (accessed via Public IP)
+# Frontend Service (with ALB for stable endpoint)
 resource "aws_ecs_service" "frontend" {
   name            = var.frontend_service_name
   cluster         = aws_ecs_cluster.this.id
@@ -382,5 +429,11 @@ resource "aws_ecs_service" "frontend" {
     subnets         = [aws_subnet.this_1.id, aws_subnet.this_2.id]
     security_groups = [aws_security_group.ecs.id]
     assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.frontend_tg.arn
+    container_name   = var.frontend_service_name
+    container_port   = var.frontend_port
   }
 }
