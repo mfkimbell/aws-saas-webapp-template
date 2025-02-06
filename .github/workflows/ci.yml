@@ -10,8 +10,8 @@ jobs:
 
     outputs:
       version: ${{ steps.set_version.outputs.version }}
-      backend_image: ${{ steps.set_tags.outputs.backend_tag }}
-      frontend_image: ${{ steps.set_tags.outputs.frontend_tag }}
+      backend_tag: ${{ steps.set_tags.outputs.backend_tag }}
+      frontend_tag: ${{ steps.set_tags.outputs.frontend_tag }}
 
     steps:
 
@@ -89,6 +89,10 @@ jobs:
       - name: Set Terraform Cloud API Token
         run: echo "TF_TOKEN_app_terraform_io=${{ secrets.TF_API_TOKEN }}" >> $GITHUB_ENV
       
+      - name: Print Image Tags
+        run: |
+          echo "Backend image tag from build: ${{ needs.build.outputs.backend_tag }}"
+          echo "Frontend image tag from build: ${{ needs.build.outputs.frontend_tag }}"
 
       - name: Terraform Init
         working-directory: ./terraform
