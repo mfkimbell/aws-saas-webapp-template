@@ -133,15 +133,3 @@ variable "db_name" {
   type        = string
   default     = "mydbname"
 }
-
-variable "backend_image" {
-  type    = string
-  default = "mfkimbell/aws-saas-template:backend-latest"
-  description = "Full Docker image URI for the backend (registry/repo:tag)"
-}
-
-variable "frontend_image" {
-  type    = string
-  default = "mfkimbell/aws-saas-template:frontend-latest"
-  description = "Full Docker image URI for the frontend (registry/repo:tag)"
-}

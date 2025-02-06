@@ -292,7 +292,7 @@ locals {
 }
 
 resource "aws_secretsmanager_secret" "db_connection_secret" {
-  name = "backend/DB_URL_V3"
+  name = "backend/DB_URL_V2"
 }
 
 resource "aws_secretsmanager_secret_version" "db_connection_secret_version" {
@@ -317,7 +317,7 @@ resource "aws_ecs_task_definition" "backend" {
   container_definitions = jsonencode([
     {
       name         = var.backend_service_name,
-      image        = var.backend_image,
+      image        = "mfkimbell/aws-saas-template:backend-0206-0951AM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -380,7 +380,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name         = var.frontend_service_name,
-      image        = var.frontend_image,
+      image        = "mfkimbell/aws-saas-template:frontend-0206-0951AM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
