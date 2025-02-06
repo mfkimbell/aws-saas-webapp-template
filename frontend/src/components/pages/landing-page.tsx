@@ -34,17 +34,19 @@ export default function LandingPage() {
             <code className="bg-black/40 px-2 py-1 rounded-md font-mono text-orange-300">
               frontend/src/components/pages/landing-page.tsx
             </code>{" "}
-            to customize your landing page.
+            to customize your landing page
           </li>
           <li>
           Edit{" "}
             <code className="bg-black/40 px-2 py-1 rounded-md font-mono text-orange-300">
               src/app.py
             </code>{" "}
-            to customize your landing page.
+            for API development
           </li>
           <li>
-            Deploy with Terraform TBD
+            To deploy with Terraform, push your changes to <code className="bg-black/40 px-2 py-1 rounded-md font-mono text-orange-300">
+              /main
+            </code>
           </li>
         </ol>
       </div>

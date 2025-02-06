@@ -137,9 +137,11 @@ variable "db_name" {
 variable "backend_image" {
   description = "Full Docker image URI for the backend (registry/repo:tag)"
   type        = string
+  default     = "mfkimbell/backend:latest"
 }
 
 variable "frontend_image" {
   description = "Full Docker image URI for the frontend (registry/repo:tag)"
   type        = string
+  default     = "mfkimbell/frontend:latest"
 }
