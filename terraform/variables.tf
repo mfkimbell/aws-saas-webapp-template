@@ -114,3 +114,22 @@ variable "frontend_port" {
   type        = number
   default     = 3000
 }
+
+# Database Credentials
+variable "db_username" {
+  description = "Database username"
+  type        = string
+  default     = "mydbuser"
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  default     = "mydbpassword"
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = "mydbname"
+}

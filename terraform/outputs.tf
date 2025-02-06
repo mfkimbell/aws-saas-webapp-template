@@ -84,7 +84,6 @@ output "frontend_alb_dns" {
 }
 
 output "backend_database_url" {
-  description = "The connection string for the backend database"
-  value       = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.backend_db.address}:${aws_db_instance.backend_db.port}/${var.db_name}"
+  description = "The ARN of the Secrets Manager secret holding the DB connection string"
+  value       = aws_secretsmanager_secret.db_connection_secret.arn
 }
-

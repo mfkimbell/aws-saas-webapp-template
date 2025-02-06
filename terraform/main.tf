@@ -15,7 +15,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Retrieve the AWS Account ID (used to build secret ARNs)
+# Retrieve AWS Account ID (for constructing secret ARNs)
 data "aws_caller_identity" "current" {}
 
 ##############################################
@@ -25,13 +25,11 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecsTaskExecutionRole"
   assume_role_policy = jsonencode({
     Version   = "2012-10-17",
-    Statement = [
-      {
-        Effect    = "Allow",
-        Principal = { Service = "ecs-tasks.amazonaws.com" },
-        Action    = "sts:AssumeRole"
-      }
-    ]
+    Statement = [{
+      Effect    = "Allow",
+      Principal = { Service = "ecs-tasks.amazonaws.com" },
+      Action    = "sts:AssumeRole"
+    }]
   })
 }
 
@@ -40,16 +38,14 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# Inline Policy to allow secretsmanager:GetSecretValue and DescribeSecret
+# Inline Policy to allow retrieval of secrets from Secrets Manager
 data "aws_iam_policy_document" "ecs_task_execution_inline_policy" {
   statement {
     effect = "Allow"
-
     actions = [
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret"
     ]
-
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:*"
     ]
@@ -71,13 +67,11 @@ resource "aws_iam_role" "ecs_task_role" {
   name = "ecsTaskRole"
   assume_role_policy = jsonencode({
     Version   = "2012-10-17",
-    Statement = [
-      {
-        Effect    = "Allow",
-        Principal = { Service = "ecs-tasks.amazonaws.com" },
-        Action    = "sts:AssumeRole"
-      }
-    ]
+    Statement = [{
+      Effect    = "Allow",
+      Principal = { Service = "ecs-tasks.amazonaws.com" },
+      Action    = "sts:AssumeRole"
+    }]
   })
 }
 
@@ -86,47 +80,35 @@ resource "aws_iam_role" "ecs_task_role" {
 ##############################################
 resource "aws_vpc" "this" {
   cidr_block = var.vpc_cidr
-  tags = {
-    Name = var.vpc_name
-  }
+  tags = { Name = var.vpc_name }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.this.id
-  tags = {
-    Name = "${var.vpc_name}-igw"
-  }
+  tags = { Name = "${var.vpc_name}-igw" }
 }
 
 resource "aws_subnet" "this_1" {
   vpc_id            = aws_vpc.this.id
   cidr_block        = var.subnet_cidr_1
   availability_zone = var.availability_zone_1
-  tags = {
-    Name = var.subnet_name_1
-  }
+  tags = { Name = var.subnet_name_1 }
 }
 
 resource "aws_subnet" "this_2" {
   vpc_id            = aws_vpc.this.id
   cidr_block        = var.subnet_cidr_2
   availability_zone = var.availability_zone_2
-  tags = {
-    Name = var.subnet_name_2
-  }
+  tags = { Name = var.subnet_name_2 }
 }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
-
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-
-  tags = {
-    Name = "${var.vpc_name}-public-rt"
-  }
+  tags = { Name = "${var.vpc_name}-public-rt" }
 }
 
 resource "aws_route_table_association" "public_association_1" {
@@ -142,24 +124,19 @@ resource "aws_route_table_association" "public_association_2" {
 resource "aws_security_group" "ecs" {
   name   = var.sg_name
   vpc_id = aws_vpc.this.id
-
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  tags = {
-    Name = var.sg_name
-  }
+  tags = { Name = var.sg_name }
 }
 
 ##############################################
@@ -170,7 +147,7 @@ resource "aws_ecs_cluster" "this" {
 }
 
 ##############################################
-# ALB Resources for Backend (unchanged)
+# ALB Resources for Backend
 ##############################################
 resource "aws_lb" "backend_alb" {
   name               = "backend-alb"
@@ -178,18 +155,15 @@ resource "aws_lb" "backend_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.ecs.id]
   subnets            = [aws_subnet.this_1.id, aws_subnet.this_2.id]
-  tags = {
-    Name = "backend-alb"
-  }
+  tags = { Name = "backend-alb" }
 }
 
 resource "aws_lb_target_group" "backend_tg" {
   name        = "backend-tg"
-  port        = var.backend_port  # 8000
+  port        = var.backend_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.this.id
   target_type = "ip"
-
   health_check {
     path                = "/"  
     protocol            = "HTTP"
@@ -199,17 +173,13 @@ resource "aws_lb_target_group" "backend_tg" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
-
-  tags = {
-    Name = "backend-tg"
-  }
+  tags = { Name = "backend-tg" }
 }
 
 resource "aws_lb_listener" "backend_listener" {
   load_balancer_arn = aws_lb.backend_alb.arn
   port              = "80"
   protocol          = "HTTP"
-
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.backend_tg.arn
@@ -225,18 +195,15 @@ resource "aws_lb" "frontend_alb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.ecs.id]
   subnets            = [aws_subnet.this_1.id, aws_subnet.this_2.id]
-  tags = {
-    Name = "frontend-alb"
-  }
+  tags = { Name = "frontend-alb" }
 }
 
 resource "aws_lb_target_group" "frontend_tg" {
   name        = "frontend-tg"
-  port        = var.frontend_port  # 3000
+  port        = var.frontend_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.this.id
   target_type = "ip"
-
   health_check {
     path                = "/"  
     protocol            = "HTTP"
@@ -246,17 +213,13 @@ resource "aws_lb_target_group" "frontend_tg" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
-
-  tags = {
-    Name = "frontend-tg"
-  }
+  tags = { Name = "frontend-tg" }
 }
 
 resource "aws_lb_listener" "frontend_listener" {
   load_balancer_arn = aws_lb.frontend_alb.arn
   port              = "80"
   protocol          = "HTTP"
-
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend_tg.arn
@@ -277,6 +240,67 @@ resource "aws_cloudwatch_log_group" "ecs_frontend" {
 }
 
 ##############################################
+# RDS & Secrets for Database Connection
+##############################################
+
+# DB Subnet Group
+resource "aws_db_subnet_group" "db_subnets" {
+  name       = "saas-backend-db-subnet-group"
+  subnet_ids = [aws_subnet.this_1.id, aws_subnet.this_2.id]
+  tags = { Name = "saas-backend-db-subnet-group" }
+}
+
+# DB Security Group for RDS
+resource "aws_security_group" "db_sg" {
+  name   = "db-sg"
+  vpc_id = aws_vpc.this.id
+  ingress {
+    description      = "Allow ECS tasks access on PostgreSQL port"
+    from_port        = 5432
+    to_port          = 5432
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.ecs.id]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = { Name = "db-sg" }
+}
+
+# RDS Instance for PostgreSQL
+resource "aws_db_instance" "backend_db" {
+  identifier              = "saas-backend-db"
+  engine                  = "postgres"
+  instance_class          = "db.t3.micro"
+  allocated_storage       = 5
+  storage_type            = "gp2"
+  username                = var.db_username
+  password                = var.db_password
+  db_name                 = var.db_name
+  publicly_accessible     = false
+  skip_final_snapshot     = true
+  vpc_security_group_ids  = [aws_security_group.db_sg.id]
+  db_subnet_group_name    = aws_db_subnet_group.db_subnets.name
+  tags = { Name = "saas-backend-db" }
+}
+
+locals {
+  rds_connection_string = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.backend_db.address}:${aws_db_instance.backend_db.port}/${var.db_name}"
+}
+
+resource "aws_secretsmanager_secret" "db_connection_secret" {
+  name = "backend/DB_CONNECTION"
+}
+
+resource "aws_secretsmanager_secret_version" "db_connection_secret_version" {
+  secret_id     = aws_secretsmanager_secret.db_connection_secret.id
+  secret_string = local.rds_connection_string
+}
+
+##############################################
 # ECS Task Definitions
 ##############################################
 
@@ -293,7 +317,7 @@ resource "aws_ecs_task_definition" "backend" {
   container_definitions = jsonencode([
     {
       name         = var.backend_service_name,
-      image        = "mfkimbell/aws-saas-template:backend-0205-0735PM",
+      image        = "mfkimbell/aws-saas-template:backend-0205-0933PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -306,11 +330,15 @@ resource "aws_ecs_task_definition" "backend" {
       ],
       environment = [
         {
-          name  = "DATABASE_URL",
+          name  = "DB_URL",
           value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.backend_db.address}:${aws_db_instance.backend_db.port}/${var.db_name}"
         }
       ],
       secrets = [
+        {
+          name      = "DB_URL",
+          valueFrom = aws_secretsmanager_secret.db_connection_secret.arn
+        },
         {
           name      = "JWT_SECRET",
           valueFrom = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:backend/JWT_SECRET"
@@ -352,7 +380,7 @@ resource "aws_ecs_task_definition" "frontend" {
   container_definitions = jsonencode([
     {
       name         = var.frontend_service_name,
-      image        = "mfkimbell/aws-saas-template:frontend-0205-0735PM",
+      image        = "mfkimbell/aws-saas-template:frontend-0205-0933PM",
       cpu          = var.cpu,
       memory       = var.memory,
       essential    = true,
@@ -409,13 +437,11 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-
   network_configuration {
     subnets         = [aws_subnet.this_1.id, aws_subnet.this_2.id]
     security_groups = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
-
   load_balancer {
     target_group_arn = aws_lb_target_group.backend_tg.arn
     container_name   = var.backend_service_name
@@ -430,91 +456,14 @@ resource "aws_ecs_service" "frontend" {
   task_definition = aws_ecs_task_definition.frontend.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-
   network_configuration {
     subnets         = [aws_subnet.this_1.id, aws_subnet.this_2.id]
     security_groups = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
-
   load_balancer {
     target_group_arn = aws_lb_target_group.frontend_tg.arn
     container_name   = var.frontend_service_name
     container_port   = var.frontend_port
   }
 }
-
-variable "db_username" {
-  description = "Database username"
-  type        = string
-  default     = "mydbuser"
-}
-
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  default     = "mydbpassword"  # In production, use a more secure method!
-}
-
-variable "db_name" {
-  description = "Database name"
-  type        = string
-  default     = "mydbname"
-}
-
-
-resource "aws_db_subnet_group" "db_subnets" {
-  name       = "saas-backend-db-subnet-group"
-  subnet_ids = [aws_subnet.this_1.id, aws_subnet.this_2.id]
-
-  tags = {
-    Name = "saas-backend-db-subnet-group"
-  }
-}
-
-resource "aws_security_group" "db_sg" {
-  name   = "db-sg"
-  vpc_id = aws_vpc.this.id
-
-  ingress {
-    description      = "Allow ECS tasks access on PostgreSQL port"
-    from_port        = 5432
-    to_port          = 5432
-    protocol         = "tcp"
-    security_groups  = [aws_security_group.ecs.id]  # Allow connections from ECS tasks
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "db-sg"
-  }
-}
-
-resource "aws_db_instance" "backend_db" {
-  identifier              = "saas-backend-db"
-  engine                  = "postgres"
-  instance_class          = "db.t3.micro"      # Adjust for production load
-  allocated_storage       = 5                 # Storage in GB
-  storage_type            = "gp2"
-  username                = var.db_username
-  password                = var.db_password
-  db_name                 = var.db_name
-  publicly_accessible     = false
-  skip_final_snapshot     = true
-
-  vpc_security_group_ids  = [aws_security_group.db_sg.id]
-  db_subnet_group_name    = aws_db_subnet_group.db_subnets.name
-
-  tags = {
-    Name = "saas-backend-db"
-  }
-}
-
-
-

@@ -23,7 +23,7 @@ The following environment variables are required:
 
 - `JWT_SECRET`: A secret key for signing and verifying JWT tokens
 - `NEXTAUTH_SECRET`: A secret key for signing and verifying NextAuth tokens
-- `DATABASE_URL`: A URL for the database
+- `DB_URL`: A URL for the database
 
 The `JWT_SECRET` on the frontend and backend must be the same.
 
@@ -32,7 +32,7 @@ The `JWT_SECRET` on the frontend and backend must be the same.
 ```
 JWT_SECRET=<MATCHING PASSWORD>
 APP_MODE=dev
-DATABASE_URL=
+DB_URL=
 ```
 `./frontend/env`
 ```
