@@ -292,7 +292,7 @@ locals {
 }
 
 resource "aws_secretsmanager_secret" "db_connection_secret" {
-  name = "backend/DB_URL_V2"
+  name = "backend/DB_URL_V3"
 }
 
 resource "aws_secretsmanager_secret_version" "db_connection_secret_version" {

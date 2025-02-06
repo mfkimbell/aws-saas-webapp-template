@@ -44,26 +44,22 @@ jobs:
           export TZ="America/Chicago"
           TIMESTAMP=$(date +"%m%d-%I%M%p")
 
-          # Tag-only
           BACKEND_TAG="backend-${TIMESTAMP}"
           FRONTEND_TAG="frontend-${TIMESTAMP}"
 
-          # Full image references (includes your Docker Hub username/repo)
           BACKEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${BACKEND_TAG}"
           FRONTEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${FRONTEND_TAG}"
 
-          echo "------------------------------------------------------"
-          echo "Generated backend tag:     $BACKEND_TAG"
-          echo "Generated frontend tag:    $FRONTEND_TAG"
-          echo "Generated backend image:   $BACKEND_IMAGE"
-          echo "Generated frontend image:  $FRONTEND_IMAGE"
-          echo "------------------------------------------------------"
+          # Base64 encode
+          B64_BACKEND_IMAGE=$(echo -n "$BACKEND_IMAGE" | base64)
+          B64_FRONTEND_IMAGE=$(echo -n "$FRONTEND_IMAGE" | base64)
 
+          echo "backend_image=$B64_BACKEND_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=$B64_FRONTEND_IMAGE" >> "$GITHUB_OUTPUT"
+          
           # Output for the rest of the job
-          echo "backend_tag=$BACKEND_TAG"       >> "$GITHUB_OUTPUT"
-          echo "frontend_tag=$FRONTEND_TAG"     >> "$GITHUB_OUTPUT"
-          echo "backend_image=$BACKEND_IMAGE"   >> "$GITHUB_OUTPUT"
-          echo "frontend_image=$FRONTEND_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "frontend_tag=frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
 
       #####################################################
       # 3) Build and push Docker images using "tag-only"
@@ -129,10 +125,14 @@ jobs:
             -var "backend_image=${{ needs.build.outputs.backend_image }}" \
             -var "frontend_image=${{ needs.build.outputs.frontend_image }}"
 
-      - name: Terraform Apply
-        working-directory: ./terraform
+      - name: Decode image references and run Terraform
         run: |
-          echo "==== Terraform Apply with dynamic images ===="
+          B64_BACKEND_IMAGE="${{ needs.build.outputs.backend_image }}"
+          B64_FRONTEND_IMAGE="${{ needs.build.outputs.frontend_image }}"
+      
+          BACKEND_IMAGE=$(echo "$B64_BACKEND_IMAGE" | base64 --decode)
+          FRONTEND_IMAGE=$(echo "$B64_FRONTEND_IMAGE" | base64 --decode)
+      
           terraform apply -auto-approve \
-            -var "backend_image=${{ needs.build.outputs.backend_image }}" \
-            -var "frontend_image=${{ needs.build.outputs.frontend_image }}"
+            -var="backend_image=${BACKEND_IMAGE}" \
+            -var="frontend_image=${FRONTEND_IMAGE}"
