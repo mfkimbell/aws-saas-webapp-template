@@ -2,6 +2,14 @@
 # Terraform and Provider Config
 ##############################################
 terraform {
+  cloud { 
+    
+    organization = "mfkimbell" 
+
+    workspaces { 
+      name = "aws-saas-template" 
+    } 
+  } 
   required_version = ">= 1.5.0"
   required_providers {
     aws = {
@@ -10,6 +18,7 @@ terraform {
     }
   }
 }
+
 
 provider "aws" {
   region = var.aws_region
@@ -292,8 +301,9 @@ locals {
 }
 
 resource "aws_secretsmanager_secret" "db_connection_secret" {
-  name = "backend/DB_URL_V3"
+  name = "DB_URL_${formatdate("MMDD-hhmmAA", timestamp())}"
 }
+
 
 resource "aws_secretsmanager_secret_version" "db_connection_secret_version" {
   secret_id     = aws_secretsmanager_secret.db_connection_secret.id

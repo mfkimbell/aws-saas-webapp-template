@@ -1,5 +1,3 @@
-name: CI and Deploy
-
 on:
   push:
     branches:
@@ -16,59 +14,40 @@ jobs:
       frontend_image: ${{ steps.set_tags.outputs.frontend_image }}
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      #####################################################
-      # 1) Generate a random "version" (optional)
-      #####################################################
       - name: Set version
         id: set_version
         run: |
           VERSION=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 8)
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
-
-      #####################################################
-      # 2) Generate both "tag-only" and "full image" references
-      #####################################################
-      - name: Set image tags using current date/time
+      
+      - name: Set image tags using current UTC date/time
         id: set_tags
         run: |
-          # Example for debugging:
-          # Make sure these secrets are actually set in your repository's settings
-          echo "DOCKERHUB_USERNAME is: ${{ secrets.DOCKERHUB_USERNAME }}"
-          echo "DOCKERHUB_REPO is: ${{ secrets.DOCKERHUB_REPO }}"
-          
-          # Generate a timestamp-based suffix
           export TZ="America/Chicago"
           TIMESTAMP=$(date +"%m%d-%I%M%p")
 
-          # Tag-only
-          BACKEND_TAG="backend-${TIMESTAMP}"
-          FRONTEND_TAG="frontend-${TIMESTAMP}"
+          
 
-          # Full image references (includes your Docker Hub username/repo)
-          BACKEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${BACKEND_TAG}"
-          FRONTEND_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${FRONTEND_TAG}"
+          echo "BACKEND_TAG=backend-${TIMESTAMP}" >> $GITHUB_ENV
+          echo "FRONTEND_TAG=frontend-${TIMESTAMP}" >> $GITHUB_ENV 
+          echo "backend_tag=backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "frontend_tag=frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          
+          echo "Generated backend tag: backend-${TIMESTAMP}"
+          echo "Generated frontend tag: frontend-${TIMESTAMP}"
 
-          echo "------------------------------------------------------"
-          echo "Generated backend tag:     $BACKEND_TAG"
-          echo "Generated frontend tag:    $FRONTEND_TAG"
-          echo "Generated backend image:   $BACKEND_IMAGE"
-          echo "Generated frontend image:  $FRONTEND_IMAGE"
-          echo "------------------------------------------------------"
 
-          # Output for the rest of the job
-          echo "backend_tag=$BACKEND_TAG"       >> "$GITHUB_OUTPUT"
-          echo "frontend_tag=$FRONTEND_TAG"     >> "$GITHUB_OUTPUT"
-          echo "backend_image=$BACKEND_IMAGE"   >> "$GITHUB_OUTPUT"
-          echo "frontend_image=$FRONTEND_IMAGE" >> "$GITHUB_OUTPUT"
 
-      #####################################################
-      # 3) Build and push Docker images using "tag-only"
-      #    (keeps your composite action usage unchanged)
-      #####################################################
+          echo backend_image="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:backend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo frontend_image="${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:frontend-${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+
+          
+
       - name: Build and push Backend Docker image
         uses: ./.github/actions/docker-image
         with:
@@ -87,13 +66,16 @@ jobs:
           dockerfile: Dockerfile.frontend
           image_tag: ${{ steps.set_tags.outputs.frontend_tag }}
 
-  #####################################################
-  # Optional test job could go here...
-  #####################################################
+  # test:
+  #   runs-on: ubuntu-latest
+  #   needs: [build]
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-  #####################################################
-  # 4) Deploy job: references the job outputs above
-  #####################################################
+  #     - name: Test Python
+  #       uses: ./.github/actions/test-python
+  #       with:
+  #         docker_image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}:${{ needs.build.outputs.backend_tag }} 
   deploy:
     runs-on: ubuntu-latest
     needs: [build]
@@ -117,6 +99,7 @@ jobs:
         run: terraform init
 
       - name: Print the image references
+        working-directory: ./terraform
         run: |
           echo "BACKEND_IMAGE from build job: ${{ needs.build.outputs.backend_image }}"
           echo "FRONTEND_IMAGE from build job: ${{ needs.build.outputs.frontend_image }}"
