@@ -395,6 +395,10 @@ resource "aws_ecs_task_definition" "frontend" {
         {
           name  = "API_URL",
           value = "http://${aws_lb.backend_alb.dns_name}"
+        },
+        {
+          name  = "NEXTAUTH_URL"
+          value = "http://${aws_lb.frontend_alb.dns_name}" # Points to your frontend ALB
         }
       ],
       secrets = [
