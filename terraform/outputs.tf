@@ -82,3 +82,9 @@ output "frontend_alb_dns" {
   description = "The DNS name of the frontend ALB"
   value       = aws_lb.frontend_alb.dns_name
 }
+
+output "backend_database_url" {
+  description = "The connection string for the backend database"
+  value       = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.backend_db.address}:${aws_db_instance.backend_db.port}/${var.db_name}"
+}
+

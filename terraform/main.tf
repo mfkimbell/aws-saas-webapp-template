@@ -304,6 +304,12 @@ resource "aws_ecs_task_definition" "backend" {
           protocol      = "tcp"
         }
       ],
+      environment = [
+        {
+          name  = "DATABASE_URL",
+          value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.backend_db.address}:${aws_db_instance.backend_db.port}/${var.db_name}"
+        }
+      ],
       secrets = [
         {
           name      = "JWT_SECRET",
@@ -437,3 +443,78 @@ resource "aws_ecs_service" "frontend" {
     container_port   = var.frontend_port
   }
 }
+
+variable "db_username" {
+  description = "Database username"
+  type        = string
+  default     = "mydbuser"
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  default     = "mydbpassword"  # In production, use a more secure method!
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = "mydbname"
+}
+
+
+resource "aws_db_subnet_group" "db_subnets" {
+  name       = "saas-backend-db-subnet-group"
+  subnet_ids = [aws_subnet.this_1.id, aws_subnet.this_2.id]
+
+  tags = {
+    Name = "saas-backend-db-subnet-group"
+  }
+}
+
+resource "aws_security_group" "db_sg" {
+  name   = "db-sg"
+  vpc_id = aws_vpc.this.id
+
+  ingress {
+    description      = "Allow ECS tasks access on PostgreSQL port"
+    from_port        = 5432
+    to_port          = 5432
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.ecs.id]  # Allow connections from ECS tasks
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "db-sg"
+  }
+}
+
+resource "aws_db_instance" "backend_db" {
+  identifier              = "saas-backend-db"
+  engine                  = "postgres"
+  instance_class          = "db.t3.micro"      # Adjust for production load
+  allocated_storage       = 5                 # Storage in GB
+  storage_type            = "gp2"
+  username                = var.db_username
+  password                = var.db_password
+  db_name                 = var.db_name
+  publicly_accessible     = false
+  skip_final_snapshot     = true
+
+  vpc_security_group_ids  = [aws_security_group.db_sg.id]
+  db_subnet_group_name    = aws_db_subnet_group.db_subnets.name
+
+  tags = {
+    Name = "saas-backend-db"
+  }
+}
+
+
+
