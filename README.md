@@ -17,6 +17,7 @@ This template focuses on a credit system where users can purchase credits to use
 This template allows the user to use Github Actions to trigger Terraform deploy their containers to AWS ECS for auth in the cloud. 
 
 ## Architechture
+<img width="1158" alt="saas-arch" src="https://github.com/user-attachments/assets/364298da-b926-4416-a27b-d6145f2cc5c3" />
 
 ## Demo
 
