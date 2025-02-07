@@ -27,8 +27,7 @@ This template allows the user to use Github Actions to trigger Terraform deploy 
 
 
 ## Local Development Steps
-1.
- change `Dockerfile.frontend` to end with
+1. Change `Dockerfile.frontend` to end with
 ```
 CMD ["npm", "run", "dev"]
 ```
@@ -56,9 +55,7 @@ NEXTAUTH_SECRET=<MATCHING PASSWORD>
 
 ## Production Deployment steps
 
-1. 
-
-You need to go to app.terraform.io and setup an **Organization** and a **Workspace**
+1. You need to go to app.terraform.io and setup an **Organization** and a **Workspace**
 
 Go to the **Variables Tab** set the following **Workspace Variables**:
 
@@ -68,9 +65,7 @@ Go to the **Variables Tab** set the following **Workspace Variables**:
 | AWS_REGION            | us-east-1                    | env      |                     |
 | AWS_SECRET_ACCESS_KEY | <your secret>                | env      | Sensitive - write only |
 
-2.
-
-You need to set the following Github Secrets:
+2. You need to set the following Github Secrets:
 
 
 | Secret                  | Description                                                                                       |
@@ -82,19 +77,14 @@ You need to set the following Github Secrets:
 | `DOCKERHUB_REPO`        | The repository name (e.g., aws-saas-template).                                                   |
 | `TF_API_TOKEN`          | Go to Terraform -> Account Settings -> Tokens -> Create an API Token                                |
 
-3. 
-
-To alter the landing page `frontend/src/components/pages/landing-page.tsx` and go to `localhost:3000`.
+3. To alter the landing page `frontend/src/components/pages/landing-page.tsx` and go to `localhost:3000`.
 
 To alter the backend go to `src/app.py` and it can be accessed at `localhost:8000`.
 
-4. 
+4. Commit your code to `/main` to trigger the auto-deployment to AWS
 
-Commit your code to `/main` to trigger the auto-deployment to AWS
+5. To delete resources run the following:
 
-5.
-
-To delete resources run the following:
 `cd terraform`
 `terraform login`
 `terraform init`
