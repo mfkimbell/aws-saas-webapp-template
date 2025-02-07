@@ -83,11 +83,18 @@ To alter the backend go to `src/app.py` and it can be accessed at `localhost:800
 
 4. Commit your code to `/main` to trigger the auto-deployment to AWS
 
+Check your Github Actions to get the Frontend and Backend ALB URLs:
+
+<img width="459" alt="Apply completet Resources 4 asded, 2 changed, 4 destroyed" src="https://github.com/user-attachments/assets/e364e21e-a8a9-4a63-83aa-d61ed9fe3c89" />
+
 5. To delete resources run the following:
 
 `cd terraform`
+
 `terraform login`
+
 `terraform init`
+
 `terraform destroy`
 
 <img width="464" alt="Screenshot 2025-02-06 at 8 28 55 PM" src="https://github.com/user-attachments/assets/31cc7bec-dce5-41b2-8580-291ace070e0a" />
