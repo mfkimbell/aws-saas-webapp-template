@@ -188,17 +188,3 @@ FastAPI has a built in "TestClient" is a wrapper around requests that allows sen
 
 It tests the register, login, and api-key logic. 
 
-
-## Development notes
-
-Use:
-```
-CMD ["npm", "run", "dev"]
-```
-To enable hot reloading
-Instead of:
-```
-RUN npm run build
-CMD ["npm", "run", "start"]
-```
-Which is for produciton.
