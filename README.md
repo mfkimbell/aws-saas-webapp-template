@@ -16,6 +16,13 @@ This template focuses on a credit system where users can purchase credits to use
 
 ## Architechture
 
+## Demo
+
+![Untitled-ezgif com-speed copy 5](https://github.com/user-attachments/assets/36e796f5-a3c4-4367-844d-e34f3e43e195)
+
+
+
+
 ## Local Development Steps
 1.
  change `Dockerfile.frontend` to end with
