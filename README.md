@@ -104,7 +104,6 @@ To delete resources run the following:
 
 
 ## Authentication
-<img width="1109" alt="auth" src="https://github.com/user-attachments/assets/5e5b7260-b203-411d-b7ad-95196e88d9df" />
 
 This application proxies api calls from NextJS's local api to the FastAPI, but only if they're authenticated (unless we are calling login, which requires no prior authorization). We use the same JWT secret in both the frontend and backend .env files to encode and decode our JWT tokens. Next.js knows the hashing algorithm because the backend includes it in the JWT header. If an attacker modifies the token payload (e.g., changing "id": 1 to "id": 999), the signature will no longer match.
 
