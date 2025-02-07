@@ -3,10 +3,7 @@
 
   <img src="https://github.com/user-attachments/assets/61a2145d-1623-4e11-b0cd-2a1ace6b566f" alt="logo" width="200">
 
-
-
-
-
+## Overview 
 This is a template for a SaaS application with authentication.
 
 The frontend is built with Next.js and Tailwind CSS.
@@ -17,56 +14,69 @@ This template allows for a user to sign up, sign in, and sign out. It comes with
 
 This template focuses on a credit system where users can purchase credits to use the application, with the ability to make an API key to use the application without the frontend. Though this can be easily modified to use a subscription model, by forcing the `requires_credit` function to not decrement the user's credit balance, to act as a subscription.
 
-## Getting Started
+## Architechture
 
-The following environment variables are required:
+## Local Development Steps
+1.
+ change `Dockerfile.frontend` to end with
+```
+CMD ["npm", "run", "dev"]
+```
+ To enable hot reloading
 
-- `JWT_SECRET`: A secret key for signing and verifying JWT tokens
-- `NEXTAUTH_SECRET`: A secret key for signing and verifying NextAuth tokens
-- `DB_URL`: A URL for the database
-
-The `JWT_SECRET` on the frontend and backend must be the same.
-
-#### Example Env for local Deveopment
+2. Setup enviornment variables
+   
 `./env`
+
 ```
 JWT_SECRET=<MATCHING PASSWORD>
 APP_MODE=dev
-DB_URL=
+DB_URL= # this can be left empty and it will default to SQLite
 ```
+
 `./frontend/env`
+
 ```
 API_URL=http://localhost:8000
 JWT_SECRET=<MATCHING PASSWORD>
 NEXTAUTH_SECRET=<MATCHING PASSWORD>
 ```
+3. Run `make build up` to build and start the containers
+4. Visit `http://localhost:3000` to view the frontend
 
 ## Production Deployment steps
 
-Run the following in the aws cli and replace "password" with a secure password
-```
-aws secretsmanager create-secret --name frontend/JWT_SECRET --secret-string “password”
-aws secretsmanager create-secret --name frontend/NEXTAUTH_SECRET --secret-string “password”
-aws secretsmanager create-secret --name backend/JWT_SECRET --secret-string “password”
-aws secretsmanager create-secret --name backend/APP_MODE --secret-string "prod"
-```
+1. 
+
+You need to go to app.terraform.io and setup an **Organization** and a **Workspace**
+
+Go to the **Variables Tab** set the following **Workspace Variables**:
+
+| Key                   | Value                        | Category | Actions             |
+|-----------------------|------------------------------|----------|---------------------|
+| AWS_ACCESS_KEY_ID     | <your access key>            | env      |                     |
+| AWS_REGION            | us-east-1                    | env      |                     |
+| AWS_SECRET_ACCESS_KEY | <your secret>                | env      | Sensitive - write only |
+
+2.
+
+You need to set the following Github Secrets:
 
 
-#### Deployment Configuration
-For DockerHub deployment via GitHub Actions, configure the following GitHub Secrets:
+| Secret                  | Description                                                                                       |
+|-------------------------|---------------------------------------------------------------------------------------------------|
+| `AWS_ACCESS_KEY_ID`     | You need to create this in AWS. Create an IAM user or use a Root Access Key.                      |
+| `AWS_SECRET_ACCESS_KEY` | You need to create this in AWS. Create an IAM user or use a Root Access Key.                      |
+| `DOCKERHUB_USERNAME`    | Your DockerHub username. (e.g., mfkimbell).                                                       |
+| `DOCKERHUB_TOKEN`       | Go to DockerHub -> Account Settings -> Personal Access Tokens -> Generate New Token                 |
+| `DOCKERHUB_REPO`        | The repository name (e.g., aws-saas-template).                                                   |
+| `TF_API_TOKEN`          | Go to Terraform -> Account Settings -> Tokens -> Create an API Token                                |
 
-`DOCKERHUB_USERNAME` - Your DockerHub username. (e.g., mfkimbell).
+3. 
 
-`DOCKERHUB_TOKEN` - Your DockerHub access token.
+To alter the landing page `frontend/src/components/pages/landing-page.tsx` and go to `localhost:3000`.
 
-`DOCKERHUB_REPO` - The repository name (e.g., aws-saas-template).
-
-## Running the Application
-
-1. Run `make build up` to build and start the containers
-2. Visit `http://localhost:3000` to view the frontend
-
-
+To alter the backend go to `src/app.py` and it can be accessed at `localhost:8000`.
 
 ## Authentication
 <img width="1109" alt="auth" src="https://github.com/user-attachments/assets/5e5b7260-b203-411d-b7ad-95196e88d9df" />
