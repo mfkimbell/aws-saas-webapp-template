@@ -185,3 +185,14 @@ FastAPI has a built in "TestClient" is a wrapper around requests that allows sen
 
 It tests the register, login, and api-key logic. 
 
+
+## Roadblocks I Faced
+
+* Had to set `NEXTAUTH_URL` to the frontend loadbalancer endpoint to enable proper signout functionality in the cloud
+* Needed a Cloud-Based `.tfstate` file for Terraform so we could undo changes deployed by the github action
+* To enable health checks for my containers, I had to manually add `curl` to both containers so they could be asked to ping themselves
+* Auth logic was difficult to work through because of the server side NextAPI being used as a proxy
+* Needed to add a custom session refresh hook to enable refreshing credits without logging in and out
+* Had to make the DB URL secret change on every release, this is because AWS Secret deletes take up to a week
+* Github Actions makes it difficult to pass secrets between jobs, so you have to dynamically build the Docker upload URL in the job, not pass it in as an output from another job
+* Load balancers are required in conjuction with Target Groups because Loadbalancers can have public endpoints but target groups do not
