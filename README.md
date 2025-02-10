@@ -196,3 +196,4 @@ It tests the register, login, and api-key logic.
 * Had to make the `DB_URL` secret change on every release, this is because AWS Secret deletes take up to a week
 * Github Actions makes it difficult to pass secrets between jobs, so you have to dynamically build the `DOCKER_URL` in the job, not pass it in as an output from another job
 * Load balancers are required in conjuction with Target Groups because Load balancers can have public endpoints but target groups do not
+* If I update the Readme in main it WILL put all my resources in the cloud, so I need to be careful about then when developing
