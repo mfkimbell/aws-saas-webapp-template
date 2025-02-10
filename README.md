@@ -14,7 +14,7 @@ This template allows for a user to sign up, sign in, and sign out. It comes with
 
 This template focuses on a credit system where users can purchase credits to use the application, with the ability to make an API key to use the application without the frontend. Though this can be easily modified to use a subscription model, by forcing the `requires_credit` function to not decrement the user's credit balance, to act as a subscription.
 
-This template allows the user to use Github Actions to trigger Terraform deploy their containers to AWS ECS for auth in the cloud. 
+This template allows the user to use GitHub Actions to trigger Terraform to deploy their containers to AWS ECS, ensuring fault tolerance, high availability, and seamless scalability for authentication in the cloud.
 
 ## Architechture
 <img width="1158" alt="saas-arch" src="https://github.com/user-attachments/assets/364298da-b926-4416-a27b-d6145f2cc5c3" />
